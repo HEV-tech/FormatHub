@@ -1,0 +1,69 @@
+# ---------- Dependencies ----------
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ---------- Build outputs ----------
+.next/
+out/
+dist/
+build/
+.cache/
+.turbo/
+*.tsbuildinfo
+
+# ---------- Logs ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+# Примечание: backend/error.log отслеживается намеренно (см. ниже исключение),
+# но обычно логи не коммитят. Раскомментируйте строку ниже, чтобы игнорировать:
+# backend/error.log
+
+# ---------- Environment / secrets ----------
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ---------- Runtime data / user-generated content ----------
+# Файлы, которые FormatHub создаёт во время работы — НЕ должны попасть в репозиторий.
+backend/outputs/*
+!backend/outputs/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# История операций уникальна для каждого запуска.
+backend/history.json
+
+# ---------- OS / editor ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ---------- Coverage / tests ----------
+coverage/
+*.lcov
+.nyc_output/
+
+# ---------- Misc ----------
+*.pem
+*.key
+.tmp/
+tmp/
