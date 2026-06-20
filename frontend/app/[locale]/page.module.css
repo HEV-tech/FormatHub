@@ -1,0 +1,364 @@
+/* =========================================================
+   Главная страница — локальные стили (page.module.css)
+   Градиенты (--gradient, --glow) приходят из globals.css
+   через классы .cat-* (добавляются к карточке).
+
+   Карточка по структуре из Figma (DOCX-пример):
+     • рамка 2px — в покое серая (--border),
+       при hover → conic-градиент (border-image: var(--gradient));
+     • InnerShadow рамки: inset 0 4px 4px 4px rgba(0,0,0,0.5);
+     • иконка — в покое серая, при hover → conic-градиент
+       (трюк: background: var(--gradient) + CSS mask по форме иконки);
+     • drop-shadow иконки: 0 4px 4px rgba(0,0,0,0.5);
+     • подпись — в покое серая, при hover → conic-градиент
+       (background-clip: text);
+     • свечение (::before) — в покое невидимо,
+       при hover проявляется (var(--glow), blur 8px).
+   ========================================================= */
+
+.page {
+  min-height: 100vh;
+}
+
+/* ---------- Top bar (64px, border-bottom #343434) ---------- */
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  height: 64px;
+  padding: 0 32px;
+  border-bottom: 1px solid #343434;
+  background: color-mix(in srgb, var(--primary-black) 80%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 30px;
+  color: var(--primary-white);
+}
+
+.logoMark {
+  width: 16px;
+  height: 20px;
+  border: 2px solid var(--primary-white);
+  border-radius: 3px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 96px 32px 64px;
+  text-align: center;
+}
+
+.heroTitle {
+  font-weight: 500;
+  font-size: 64px;
+  line-height: 81px;
+  color: var(--primary-white);
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  margin: 24px auto 0;
+  max-width: 720px;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 30px;
+  color: #ffffff;
+}
+
+/* =========================================================
+   Бесконечная лента форматов
+   ---------------------------------------------------------
+   2 ряда; иногда встречается «квадрат» (grid-row: span 2).
+   Трек дублируется дважды → прокрутка translateX(-50%).
+   ========================================================= */
+.strip {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 24px 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.track {
+  display: grid;
+  grid-template-rows: repeat(2, 96px);
+  grid-auto-flow: column;
+  grid-auto-columns: 160px;
+  gap: 12px;
+  width: max-content;
+  animation: scrollLeft 60s linear infinite;
+}
+
+.strip:hover .track {
+  animation-play-state: paused;
+}
+
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* =========================================================
+   Карточка формата
+   ========================================================= */
+.card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  /* Рамка 2px — в покое серая. */
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  background: var(--primary-black);
+  /* InnerShadow рамки (по Figma). */
+  box-shadow: inset 0 4px 4px 4px rgba(0, 0, 0, 0.5);
+  color: var(--border-white);
+  cursor: pointer;
+  overflow: visible;
+  transition: border-color var(--transition-base) var(--ease-out),
+    transform var(--transition-base) var(--ease-out);
+}
+
+.square {
+  grid-row: span 2;
+  border-radius: 20px;
+}
+
+/* Подложка свечения (::before): в покое невидима. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+  background: var(--glow);
+  opacity: 0;
+  filter: blur(0px);
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity var(--transition-base) var(--ease-out),
+    filter var(--transition-base) var(--ease-out);
+}
+
+/* ---------- Hover / focus ---------- */
+.card:hover,
+.card:focus-visible {
+  /* Рамка → conic-градиент (border-image). */
+  border-color: transparent;
+  border-image-source: var(--gradient);
+  border-image-slice: 1;
+  border-image-width: 2;
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.card:hover::before,
+.card:focus-visible::before {
+  opacity: 1;
+  filter: blur(8px);
+}
+
+/* =========================================================
+   Иконка
+   ---------------------------------------------------------
+   В покое — серый силуэт через CSS mask (background = цвет).
+   При hover — background становится conic-градиентом категории,
+   маска вырезает форму иконки, поверх — drop-shadow.
+   Это даёт НАСТОЯЩИЙ conic-градиент на иконке.
+   ========================================================= */
+.icon {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  background: var(--border-white);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  /* Простая тень иконки (по Figma). */
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
+  transition: background var(--transition-base) var(--ease-out);
+}
+
+.square .icon {
+  width: 44px;
+  height: 44px;
+}
+
+/* При hover/focus иконка красится в conic-градиент категории. */
+.card:hover .icon,
+.card:focus-visible .icon {
+  background: var(--gradient);
+}
+
+/* ---------- Маски иконок (data-URI, fill-силуэты) ---------- */
+/* Каждая маска = белый силуэт на прозрачном фоне (white = visible в mask). */
+
+.iconPdf {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6' stroke='black' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6' stroke='black' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/></svg>");
+}
+.iconDocuments {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 13l2 2 4-4'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 13l2 2 4-4'/></svg>");
+}
+.iconImages {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><circle cx='9' cy='9' r='2'/><path d='M21 15l-5-5L5 21'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><circle cx='9' cy='9' r='2'/><path d='M21 15l-5-5L5 21'/></g></svg>");
+}
+.iconSpreadsheets {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18M3 15h18M9 3v18M15 3v18'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18M3 15h18M9 3v18M15 3v18'/></g></svg>");
+}
+.iconVideo {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='5' width='20' height='14' rx='2'/><path d='M10 9l5 3-5 3z'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='5' width='20' height='14' rx='2'/><path d='M10 9l5 3-5 3z'/></g></svg>");
+}
+.iconPresentations {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='12' rx='2'/><path d='M12 16v4M8 20h8'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='12' rx='2'/><path d='M12 16v4M8 20h8'/></g></svg>");
+}
+.iconAudio {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18V5l12-2v13'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='16' r='3'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18V5l12-2v13'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='16' r='3'/></g></svg>");
+}
+.iconArchives {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 8v13H3V8'/><path d='M1 3h22v5H1zM10 12h4'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 8v13H3V8'/><path d='M1 3h22v5H1zM10 12h4'/></g></svg>");
+}
+.iconEbooks {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/><path d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/><path d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/></g></svg>");
+}
+.iconVector {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='2' width='4' height='4'/><rect x='18' y='2' width='4' height='4'/><rect x='2' y='18' width='4' height='4'/><rect x='18' y='18' width='4' height='4'/><path d='M6 4h12M4 6v12M20 6v12M6 20h12'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='2' width='4' height='4'/><rect x='18' y='2' width='4' height='4'/><rect x='2' y='18' width='4' height='4'/><rect x='18' y='18' width='4' height='4'/><path d='M6 4h12M4 6v12M20 6v12M6 20h12'/></g></svg>");
+}
+.icon3d {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2L3 7v10l9 5 9-5V7z'/><path d='M3 7l9 5 9-5M12 12v10'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2L3 7v10l9 5 9-5V7z'/><path d='M3 7l9 5 9-5M12 12v10'/></g></svg>");
+}
+.iconCad {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v20M2 12h20'/><circle cx='12' cy='12' r='9'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v20M2 12h20'/><circle cx='12' cy='12' r='9'/></g></svg>");
+}
+.iconHtml {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></g></svg>");
+}
+.iconCss {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 3l1.5 17L12 22l6.5-2L20 3z'/><path d='M16 8H8l.5 4H15l-.5 4-2.5 1-2.5-1-.2-2'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 3l1.5 17L12 22l6.5-2L20 3z'/><path d='M16 8H8l.5 4H15l-.5 4-2.5 1-2.5-1-.2-2'/></g></svg>");
+}
+.iconJs {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M9 17c0 1 .5 2 2 2s2-1 2-2V9M17 16c0 1.5 1 2.5 2.5 2.5S22 17.5 22 16s-1-2-2.5-2S17 13 17 11.5 18 9 19.5 9 22 10 22 11.5'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M9 17c0 1 .5 2 2 2s2-1 2-2V9M17 16c0 1.5 1 2.5 2.5 2.5S22 17.5 22 16s-1-2-2.5-2S17 13 17 11.5 18 9 19.5 9 22 10 22 11.5'/></g></svg>");
+}
+.iconReact {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2'><circle cx='12' cy='12' r='2' fill='black'/><ellipse cx='12' cy='12' rx='10' ry='4'/><ellipse cx='12' cy='12' rx='10' ry='4' transform='rotate(60 12 12)'/><ellipse cx='12' cy='12' rx='10' ry='4' transform='rotate(120 12 12)'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2'><circle cx='12' cy='12' r='2' fill='black'/><ellipse cx='12' cy='12' rx='10' ry='4'/><ellipse cx='12' cy='12' rx='10' ry='4' transform='rotate(60 12 12)'/><ellipse cx='12' cy='12' rx='10' ry='4' transform='rotate(120 12 12)'/></g></svg>");
+}
+.iconMarkdown {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='M7 15V9l3 3 3-3v6M17 9v6M17 15l-2-2M17 15l2-2'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='M7 15V9l3 3 3-3v6M17 9v6M17 15l-2-2M17 15l2-2'/></g></svg>");
+}
+.iconJson {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 4c-2 0-3 1-3 3v2c0 1-1 2-2 2 1 0 2 1 2 2v2c0 2 1 3 3 3M17 4c2 0 3 1 3 3v2c0 1 1 2 2 2-1 0-2 1-2 2v2c0 2-1 3-3 3'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 4c-2 0-3 1-3 3v2c0 1-1 2-2 2 1 0 2 1 2 2v2c0 2 1 3 3 3M17 4c2 0 3 1 3 3v2c0 1 1 2 2 2-1 0-2 1-2 2v2c0 2-1 3-3 3'/></svg>");
+}
+.iconApk {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='2' width='14' height='20' rx='2'/><path d='M9 18h6M12 6v4'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='2' width='14' height='20' rx='2'/><path d='M9 18h6M12 6v4'/></g></svg>");
+}
+.iconDisk {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='3'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='3'/></g></svg>");
+}
+
+/* ---------- Подпись ---------- */
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--secondary-white);
+  background: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: color var(--transition-base) var(--ease-out);
+}
+
+.square .label {
+  font-size: 16px;
+}
+
+/* При hover подпись красится в conic-градиент категории. */
+.card:hover .label,
+.card:focus-visible .label {
+  color: transparent;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 768px) {
+  .hero {
+    padding: 56px 20px 40px;
+  }
+  .heroTitle {
+    font-size: 40px;
+    line-height: 50px;
+  }
+  .heroSubtitle {
+    font-size: 18px;
+    line-height: 26px;
+  }
+}
+
+/* ---------- Режим низкой производительности ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+  .card::before {
+    display: none;
+  }
+  .card:hover,
+  .card:focus-visible {
+    transform: none;
+  }
+}

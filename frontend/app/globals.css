@@ -514,6 +514,259 @@ svg {
 }
 
 /* ============================================================
+   4.22 Градиенты категорий как CSS-переменные
+   ------------------------------------------------------------
+   Те же значения conic-gradient (angular), что и в классах выше,
+   но в виде переменной --gradient, чтобы переиспользовать:
+     • в border-image рамки карточки,
+     • как фон иконки (через mask) при наведении,
+     • в свечении (::before с --glow).
+   Класс .cat-* применяется к карточке и устанавливает сразу
+   --gradient и --glow.
+   ============================================================ */
+
+.cat-documents {
+  --gradient: conic-gradient(
+    from 90deg,
+    #00cfff 0deg,
+    #0052ff 72deg,
+    #00a2ff 144deg,
+    #0033cc 216deg,
+    #0077ee 288deg,
+    #00cfff 360deg
+  );
+  --glow: #0052ff;
+}
+.cat-spreadsheets {
+  --gradient: conic-gradient(
+    from 90deg,
+    #79e86c 0deg,
+    #107c41 72deg,
+    #4aa647 144deg,
+    #0b5e2e 216deg,
+    #1a8c4a 288deg,
+    #79e86c 360deg
+  );
+  --glow: #107c41;
+}
+.cat-presentations {
+  --gradient: conic-gradient(
+    from 90deg,
+    #ffb347 0deg,
+    #e64326 72deg,
+    #ea7b33 144deg,
+    #d56029 216deg,
+    #d83a1f 288deg,
+    #ffb347 360deg
+  );
+  --glow: #e64326;
+}
+.cat-images {
+  --gradient: conic-gradient(
+    from 90deg,
+    #e8a317 0deg,
+    #ffd700 72deg,
+    #f28c00 144deg,
+    #ffe226 216deg,
+    #d96600 288deg,
+    #e8a317 360deg
+  );
+  --glow: #f28c00;
+}
+.cat-video {
+  --gradient: conic-gradient(
+    from 90deg,
+    #ff0b48 0deg,
+    #dc143c 72deg,
+    #ff3366 144deg,
+    #ff4d4d 216deg,
+    #fd2323 288deg,
+    #ff0b48 360deg
+  );
+  --glow: #dc143c;
+}
+.cat-pdf {
+  --gradient: conic-gradient(
+    from 90deg,
+    #ff0000 0deg,
+    #b70000 72deg,
+    #cc0000 144deg,
+    #ff3333 216deg,
+    #be1212 288deg,
+    #ff0000 360deg
+  );
+  --glow: #cc0000;
+}
+.cat-audio {
+  --gradient: conic-gradient(
+    from 90deg,
+    #8f00ff 0deg,
+    #dd44ff 72deg,
+    #6600cc 144deg,
+    #cc33ff 216deg,
+    #4b0082 288deg,
+    #8f00ff 360deg
+  );
+  --glow: #dd44ff;
+}
+.cat-archives {
+  --gradient: conic-gradient(
+    from 90deg,
+    #7a7f89 0deg,
+    #595c62 72deg,
+    #7c8391 144deg,
+    #4a4f59 216deg,
+    #414752 288deg,
+    #7a7f89 360deg
+  );
+  --glow: #595c62;
+}
+.cat-vector {
+  --gradient: conic-gradient(
+    from 90deg,
+    #00c6d3 0deg,
+    #00ffd3 72deg,
+    #098587 144deg,
+    #00f0ff 216deg,
+    #098587 288deg,
+    #00c6d3 360deg
+  );
+  --glow: #00ffd3;
+}
+.cat-ebooks {
+  --gradient: conic-gradient(
+    from 90deg,
+    #a29064 0deg,
+    #d2bd89 72deg,
+    #938153 144deg,
+    #d2bd89 216deg,
+    rgba(210, 189, 137, 0.59) 288deg,
+    #a29064 360deg
+  );
+  --glow: #d2bd89;
+}
+.cat-3d {
+  --gradient: conic-gradient(
+    from 90deg,
+    #c82579 0deg,
+    #d43f7a 72deg,
+    #da2884 144deg,
+    #f76b9b 216deg,
+    #9b1d5e 288deg,
+    #c82579 360deg
+  );
+  --glow: #d43f7a;
+}
+.cat-cad {
+  --gradient: conic-gradient(
+    from 90deg,
+    #4f8a9a 0deg,
+    #4f8a9a 72deg,
+    #2c5a6e 144deg,
+    #7bb2c2 216deg,
+    #2c5a6e 288deg,
+    #4f8a9a 360deg
+  );
+  --glow: #2c5a6e;
+}
+.cat-html {
+  --gradient: conic-gradient(
+    from 90deg,
+    #f26527 0deg,
+    #e8672d 72deg,
+    #e54c25 144deg,
+    #f57c3a 216deg,
+    #c63d1e 288deg,
+    #f26527 360deg
+  );
+  --glow: #e54c25;
+}
+.cat-css {
+  --gradient: conic-gradient(
+    from 90deg,
+    #2965e9 0deg,
+    #3b7dd6 72deg,
+    #254ddf 144deg,
+    #4a8af4 216deg,
+    #1a3fa8 288deg,
+    #2965e9 360deg
+  );
+  --glow: #254ddf;
+}
+.cat-js {
+  --gradient: conic-gradient(
+    from 90deg,
+    #fec001 0deg,
+    #ffc82e 72deg,
+    #e6a800 144deg,
+    #ffd645 216deg,
+    #ff9d01 288deg,
+    #fec001 360deg
+  );
+  --glow: #e6a800;
+}
+.cat-react {
+  --gradient: conic-gradient(
+    from 90deg,
+    #00d9fc 0deg,
+    #20d4f0 72deg,
+    #00bcd4 144deg,
+    #4de8ff 216deg,
+    #009fb8 288deg,
+    #00d9fc 360deg
+  );
+  --glow: #00bcd4;
+}
+.cat-markdown {
+  --gradient: conic-gradient(
+    from 90deg,
+    #814ce8 0deg,
+    #9b6cf0 72deg,
+    #6128cd 144deg,
+    #aa87ef 216deg,
+    #4a1c9f 288deg,
+    #814ce8 360deg
+  );
+  --glow: #6128cd;
+}
+.cat-json {
+  --gradient: conic-gradient(
+    from 90deg,
+    #b8a86a 0deg,
+    #c4b07a 72deg,
+    #a0905a 144deg,
+    #e6d3a0 216deg,
+    #6e6040 288deg,
+    #b8a86a 360deg
+  );
+  --glow: #a0905a;
+}
+.cat-apk {
+  --gradient: conic-gradient(
+    from 90deg,
+    #afb42b 0deg,
+    #c0ca33 72deg,
+    #a4c639 144deg,
+    #d4e157 216deg,
+    #7cb342 288deg,
+    #afb42b 360deg
+  );
+  --glow: #a4c639;
+}
+.cat-disk {
+  --gradient: conic-gradient(
+    from 90deg,
+    #c62828 0deg,
+    #d32f2f 72deg,
+    #b71c1c 144deg,
+    #e57373 216deg,
+    #8d1b1b 288deg,
+    #c62828 360deg
+  );
+  --glow: #b71c1c;
+}
+
+/* ============================================================
    Режим низкой производительности (lowPerformance)
    ------------------------------------------------------------
    При установке атрибута data-perf="low" на <html> отключаются
