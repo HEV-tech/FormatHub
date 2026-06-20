@@ -1,0 +1,505 @@
+/* ============================================================
+   FormatHub — globals.css
+   Источник: экспорт стилей из Figma (тёмная тема)
+   Структура:
+     1. Tailwind layers
+     2. Сброс / базовые стили
+     3. Серая палитра (.primaryblack … .primarywhite)
+     4. Градиенты по категориям (.documentsgradient, .jsongradient, …)
+        Каждый класс самодостаточен и включает:
+          - conic-gradient (цвет категории),
+          - рамку 2px (inner shadow, #000000 50%),
+          - цветное свечение под рамкой (layer blur 8),
+          - drop shadow для SVG-иконки (#000000 50%).
+     Примечание: светлая тема (#E1E1E1 / #171717) и переключатель
+     тем добавляются отдельно (см. ТЗ раздел 3.4).
+   ============================================================ */
+
+@import "tailwindcss";
+
+/* ---------- 2. Сброс / базовые стили ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+    sans-serif;
+  /* Тёмная тема (Figma): фон #171717, текст светлый */
+  background-color: #171717;
+  color: #d1d1d1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- 3. Серая палитра (Figma) ---------- */
+
+.primaryblack {
+  background: #171717;
+}
+
+.secondaryblack {
+  background: #2f2f2f;
+}
+
+.borderblack {
+  background: #494949;
+}
+
+.border {
+  background: #636363;
+}
+
+.borderwhite {
+  background: #7d7d7d;
+}
+
+.secondarywhite {
+  background: #9b9b9b;
+}
+
+.primarywhite {
+  background: #d1d1d1;
+}
+
+/* ============================================================
+   4. Градиенты по категориям форматов
+   ------------------------------------------------------------
+   Каждый класс оформляет «чип» иконки формата и включает:
+     • conic-gradient — цвет категории;
+     • border 2px solid transparent + inner shadow #000000 50%;
+     • свечение под рамкой: box-shadow с цветом категории
+       и размытием ~ layer blur 8 (имитируется через blur радиус
+       box-shadow + внешний ::before с blur);
+     • вложенная SVG-иконка получает drop-shadow #000000 50%.
+
+   Использование:
+     <span class="documentsgradient">
+       <svg class="format-icon"> … </svg>
+     </span>
+   ============================================================ */
+
+/* Общий контейнер иконки — применяется ко всем .xxxgradient.
+   position: relative нужен для свечения (псевдоэлемент ::before). */
+.documentsgradient,
+.spreadsheetsgradient,
+.presentationsgradient,
+.imagesgradient,
+.videogradient,
+.pdfgradient,
+.audiogradient,
+.archivesgradient,
+.vectorgradient,
+.ebooksgradient,
+._3dgradient,
+.cadgradient,
+.htmlgradient,
+.cssgradient,
+.jsgradient,
+.reactgradient,
+.apkgradient,
+.diskgradient,
+.latexgradient,
+.mdgradient,
+.jsongradient {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Базовый размер чипа иконки (как в Figma): 40×40,
+     скругление 5px, рамка 2px. */
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  /* Рамка 2px — задаётся через box-shadow inset (inner shadow),
+     чтобы не «съедать» площадь под gradient-фоном.
+     #000000 50% как в Figma. */
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
+  /* Внешнее цветное свечение под рамкой = layer blur 8.
+     Реализовано двойной тенью: мягкая подсветка цвета категории
+     + общая тень #000000 50%. Цвет паддинга задаётся в
+     конкретных классах ниже через --glow. */
+  isolation: isolate;
+  overflow: visible;
+}
+
+/* Псевдоэлемент ::before — мягкое цветное свечение за чипом.
+   Реальный layer-blur в CSS недоступен, поэтому имитируем
+   размытой тенью. Располагается «под» фоном (z-index: -1). */
+.documentsgradient::before,
+.spreadsheetsgradient::before,
+.presentationsgradient::before,
+.imagesgradient::before,
+.videogradient::before,
+.pdfgradient::before,
+.audiogradient::before,
+.archivesgradient::before,
+.vectorgradient::before,
+.ebooksgradient::before,
+._3dgradient::before,
+.cadgradient::before,
+.htmlgradient::before,
+.cssgradient::before,
+.jsgradient::before,
+.reactgradient::before,
+.apkgradient::before,
+.diskgradient::before,
+.latexgradient::before,
+.mdgradient::before,
+.jsongradient::before {
+  content: "";
+  position: absolute;
+  inset: -8px; /* «вылезает» за чип на 8px — даёт halo */
+  border-radius: 13px; /* 5px + 8px запас */
+  background: var(--glow, transparent);
+  /* Layer blur 8 через filter: blur(8px). */
+  filter: blur(8px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* SVG-иконка внутри чипа: drop shadow #000000 50%. */
+.format-icon {
+  position: relative;
+  z-index: 1;
+  width: 60%;
+  height: 60%;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* ---------- 4.1 Документы (Word) ---------- */
+.documentsgradient {
+  --glow: #0052ff;
+  background: conic-gradient(
+    from 54deg at 53.13% 47.5%,
+    #00cfff 0%,
+    #0052ff 20%,
+    #00a2ff 40%,
+    #0033cc 60%,
+    #0077ee 80%
+  );
+}
+
+/* ---------- 4.2 Таблицы (Excel) ---------- */
+.spreadsheetsgradient {
+  --glow: #107c41;
+  background: conic-gradient(
+    from 54deg at 53.13% 47.5%,
+    #79e86c 0%,
+    #107c41 20%,
+    #4aa647 40%,
+    #0b5e2e 60%,
+    #1a8c4a 80%
+  );
+}
+
+/* ---------- 4.3 Презентации (PowerPoint) ---------- */
+.presentationsgradient {
+  --glow: #e64326;
+  background: conic-gradient(
+    from 54deg at 53.13% 47.5%,
+    #ffb347 0%,
+    #e64326 20%,
+    #ea7b33 40%,
+    #d56029 60%,
+    #d83a1f 80%
+  );
+}
+
+/* ---------- 4.4 Изображения ---------- */
+.imagesgradient {
+  --glow: #f28c00;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #e8a317 0%,
+    #ffd700 20%,
+    #f28c00 40%,
+    #ffe226 60%,
+    #d96600 80%
+  );
+}
+
+/* ---------- 4.5 Видео ---------- */
+.videogradient {
+  --glow: #dc143c;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #ff0b48 0%,
+    #dc143c 20%,
+    #ff3366 40%,
+    #ff4d4d 60%,
+    #fd2323 80%
+  );
+}
+
+/* ---------- 4.6 PDF ---------- */
+.pdfgradient {
+  --glow: #cc0000;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #ff0000 0%,
+    #b70000 20%,
+    #cc0000 40%,
+    #ff3333 60%,
+    #be1212 80%
+  );
+}
+
+/* ---------- 4.7 Аудио ---------- */
+.audiogradient {
+  --glow: #dd44ff;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #8f00ff 0%,
+    #dd44ff 20%,
+    #6600cc 40%,
+    #cc33ff 60%,
+    #4b0082 80%
+  );
+}
+
+/* ---------- 4.8 Архивы ---------- */
+.archivesgradient {
+  --glow: #595c62;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #7a7f89 0%,
+    #595c62 20%,
+    #7c8391 40%,
+    #4a4f59 60%,
+    #414752 80%
+  );
+}
+
+/* ---------- 4.9 Векторная графика ---------- */
+.vectorgradient {
+  --glow: #00ffd3;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #00c6d3 0%,
+    #00ffd3 20%,
+    #098587 40%,
+    #00f0ff 60%,
+    #098587 80%
+  );
+}
+
+/* ---------- 4.10 Электронные книги ---------- */
+.ebooksgradient {
+  --glow: #d2bd89;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #a29064 0%,
+    #d2bd89 20%,
+    #938153 40%,
+    #d2bd89 60%,
+    rgba(210, 189, 137, 0.59) 86%
+  );
+}
+
+/* ---------- 4.11 3D ---------- *
+ * Примечание: класс .3dgradient в CSS невозможен (имя класса не
+ * может начинаться с цифры), поэтому используется ._3dgradient. */
+._3dgradient {
+  --glow: #d43f7a;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #c82579 0%,
+    #d43f7a 20%,
+    #da2884 40%,
+    #f76b9b 60%,
+    #9b1d5e 80%
+  );
+}
+
+/* ---------- 4.12 CAD ---------- */
+.cadgradient {
+  --glow: #2c5a6e;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #4f8a9a 0%,
+    #4f8a9a 20%,
+    #2c5a6e 40%,
+    #7bb2c2 60%,
+    #2c5a6e 80%
+  );
+}
+
+/* ---------- 4.13 HTML ---------- */
+.htmlgradient {
+  --glow: #e54c25;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #f26527 0%,
+    #e8672d 20%,
+    #e54c25 40%,
+    #f57c3a 60%,
+    #c63d1e 80%
+  );
+}
+
+/* ---------- 4.14 CSS ---------- */
+.cssgradient {
+  --glow: #254ddf;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #2965e9 0%,
+    #3b7dd6 20%,
+    #254ddf 40%,
+    #4a8af4 60%,
+    #1a3fa8 80%
+  );
+}
+
+/* ---------- 4.15 JavaScript ---------- */
+.jsgradient {
+  --glow: #e6a800;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #fec001 0%,
+    #ffc82e 20%,
+    #e6a800 40%,
+    #ffd645 60%,
+    #ff9d01 80%
+  );
+}
+
+/* ---------- 4.16 React ---------- */
+.reactgradient {
+  --glow: #00bcd4;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #00d9fc 0%,
+    #20d4f0 20%,
+    #00bcd4 40%,
+    #4de8ff 60%,
+    #009fb8 80%
+  );
+}
+
+/* ---------- 4.17 APK ---------- */
+.apkgradient {
+  --glow: #a4c639;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #afb42b 0%,
+    #c0ca33 20%,
+    #a4c639 40%,
+    #d4e157 60%,
+    #7cb342 80%
+  );
+}
+
+/* ---------- 4.18 Образы дисков ---------- */
+.diskgradient {
+  --glow: #b71c1c;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #c62828 0%,
+    #d32f2f 20%,
+    #b71c1c 40%,
+    #e57373 60%,
+    #8d1b1b 80%
+  );
+}
+
+/* ---------- 4.19 LaTeX ---------- */
+.latexgradient {
+  --glow: #58b0f8;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #90caf9 0%,
+    #bbdefb 20%,
+    #58b0f8 40%,
+    #e3f2fd 60%,
+    #4398e2 80%
+  );
+}
+
+/* ---------- 4.20 Markdown ---------- */
+.mdgradient {
+  --glow: #6128cd;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #814ce8 0%,
+    #9b6cf0 20%,
+    #6128cd 40%,
+    #aa87ef 60%,
+    #4a1c9f 80%
+  );
+}
+
+/* ---------- 4.21 JSON ---------- */
+.jsongradient {
+  --glow: #a0905a;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    #b8a86a 0%,
+    #c4b07a 20%,
+    #a0905a 40%,
+    #e6d3a0 60%,
+    #6e6040 80%
+  );
+}
+
+/* ============================================================
+   Режим низкой производительности (lowPerformance)
+   ------------------------------------------------------------
+   При установке атрибута data-perf="low" на <html> отключаются
+   filter: blur и drop-shadow (тяжёлые эффекты), свечение
+   упрощается до обычной box-shadow без размытия.
+   См. ТЗ раздел 11 (FPS-тест, lowPerformance).
+   ============================================================ */
+[data-perf="low"] .documentsgradient::before,
+[data-perf="low"] .spreadsheetsgradient::before,
+[data-perf="low"] .presentationsgradient::before,
+[data-perf="low"] .imagesgradient::before,
+[data-perf="low"] .videogradient::before,
+[data-perf="low"] .pdfgradient::before,
+[data-perf="low"] .audiogradient::before,
+[data-perf="low"] .archivesgradient::before,
+[data-perf="low"] .vectorgradient::before,
+[data-perf="low"] .ebooksgradient::before,
+[data-perf="low"]._3dgradient::before,
+[data-perf="low"] .cadgradient::before,
+[data-perf="low"] .htmlgradient::before,
+[data-perf="low"] .cssgradient::before,
+[data-perf="low"] .jsgradient::before,
+[data-perf="low"] .reactgradient::before,
+[data-perf="low"] .apkgradient::before,
+[data-perf="low"] .diskgradient::before,
+[data-perf="low"] .latexgradient::before,
+[data-perf="low"] .mdgradient::before,
+[data-perf="low"] .jsongradient::before {
+  filter: none; /* отключаем layer blur 8 */
+  inset: 0;     /* свечение без halo в lowPerformance */
+  opacity: 0.6;
+}
+
+[data-perf="low"] .format-icon {
+  filter: none; /* отключаем drop-shadow */
+}
