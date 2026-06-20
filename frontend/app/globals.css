@@ -3,21 +3,66 @@
    Источник: экспорт стилей из Figma (тёмная тема)
    Структура:
      1. Tailwind layers
-     2. Сброс / базовые стили
-     3. Серая палитра (.primaryblack … .primarywhite)
-     4. Градиенты по категориям (.documentsgradient, .jsongradient, …)
+     2. CSS-переменные (:root) — палитра серых, скругления, тайминги
+     3. Сброс / базовые стили
+     4. Серая палитра (.primaryblack … .primarywhite)
+     5. Градиенты по категориям (.documentsgradient, .jsongradient, …)
         Каждый класс самодостаточен и включает:
           - conic-gradient (цвет категории),
           - рамку 2px (inner shadow, #000000 50%),
           - цветное свечение под рамкой (layer blur 8),
           - drop shadow для SVG-иконки (#000000 50%).
+     6. Карточка формата (.format-card) — статика + hover-анимация
+        (обводка --border → градиент категории, появление свечения).
+     7. App Bar (.app-bar, .nav-pill, .nav-pill__menu) — стиль
+        Supabase / Resend / Vercel.
      Примечание: светлая тема (#E1E1E1 / #171717) и переключатель
-     тем добавляются отдельно (см. ТЗ раздел 3.4).
+     тем добавляются отдельно (см. ТЗ раздел 3.4) через [data-theme].
    ============================================================ */
 
 @import "tailwindcss";
 
-/* ---------- 2. Сброс / базовые стили ---------- */
+/* ---------- 2. CSS-переменные (:root) ---------- */
+
+:root {
+  /* Серая палитра (Figma) — единственный источник истины.
+     Имена совпадают с .primaryblack … .primarywhite. */
+  --primary-black: #171717;
+  --secondary-black: #2f2f2f;
+  --border-black: #494949;
+  --border: #636363;
+  --border-white: #7d7d7d;
+  --secondary-white: #9b9b9b;
+  --primary-white: #d1d1d1;
+
+  /* Базовый фон/текст страницы (тёмная тема по умолчанию). */
+  --bg: var(--primary-black);
+  --text: var(--primary-white);
+  --text-muted: var(--secondary-white);
+
+  /* Тайминги анимаций. */
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Скругления (ТЗ 3.4). */
+  --radius-card: 24px;
+  --radius-button: 12px;
+  --radius-pill: 999px;
+
+  /* Свечение карточки: размер halo и сила блюра подслоя. */
+  --card-glow-blur: 8px;
+  --card-glow-offset: 8px;
+}
+
+/* (Светлая тема переопределяет только нужные переменные.) */
+[data-theme="light"] {
+  --bg: #e1e1e1;
+  --text: var(--primary-black);
+  --text-muted: var(--border-black);
+}
+
+/* ---------- 3. Сброс / базовые стили ---------- */
 
 *,
 *::before,
@@ -32,12 +77,14 @@ body {
   min-height: 100vh;
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
-  /* Тёмная тема (Figma): фон #171717, текст светлый */
-  background-color: #171717;
-  color: #d1d1d1;
+  /* Фон/текст через переменные (тёмная тема по умолчанию). */
+  background-color: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  transition: background-color var(--transition-base) var(--ease-out),
+    color var(--transition-base) var(--ease-out);
 }
 
 a {
@@ -502,4 +549,284 @@ svg {
 
 [data-perf="low"] .format-icon {
   filter: none; /* отключаем drop-shadow */
+}
+
+/* ============================================================
+   6. Карточка формата (.format-card)
+   ------------------------------------------------------------
+   Используется на главной (лента презентации), на /formats и при
+   выборе целевого формата. См. ТЗ 5.1.3.
+
+   Состояния:
+     • покой   — фон темы, обводка var(--border), без свечения;
+     • hover   — обводка плавно становится градиентом категории,
+                 подслой ::before размытием var(--card-glow-blur)
+                 даёт цветное свечение (var(--card-glow));
+     • active  — зафиксированное hover-состояние (выбранный формат).
+
+   Переменные категории (задаются инлайн или через data-атрибут):
+     --card-gradient  : conic-gradient из таблицы 3.2;
+     --card-glow      : цвет glow из таблицы 3.2.
+   ============================================================ */
+
+.format-card {
+  position: relative;
+  isolation: isolate; /* чтобы ::before с z-index:-1 ушёл под контент */
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  /* Фон карточки: --primary-black в тёмной теме, --primary-white в светлой. */
+  background: var(--bg);
+  /* Нейтральная обводка в покое. */
+  border: 1px solid var(--border);
+  /* Длительность перехода — короткая и быстрая. */
+  transition: border-color var(--transition-base) var(--ease-out),
+    transform var(--transition-base) var(--ease-out),
+    box-shadow var(--transition-base) var(--ease-out);
+  cursor: pointer;
+  overflow: visible; /* чтобы свечение ::before выходило за границы */
+  color: var(--text-muted);
+}
+
+/* Подслой свечения: в покое невидим (opacity 0, blur 0),
+   при hover проявляется и усиливается. */
+.format-card::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--card-glow-offset)); /* halo на 8px с каждой стороны */
+  border-radius: calc(var(--radius-card) + var(--card-glow-offset));
+  background: var(--card-glow, transparent);
+  /* Покой: нет свечения. */
+  opacity: 0;
+  filter: blur(0px);
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity var(--transition-base) var(--ease-out),
+    filter var(--transition-base) var(--ease-out);
+}
+
+/* Hover: обводка → градиент категории, свечение появляется.
+   Градиентная обводка реализована через background-clip: две прослойки
+   фона: нижняя — градиент (видна как рамка), верхняя — фон карточки. */
+.format-card:hover,
+.format-card:focus-visible {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    var(--card-gradient, var(--border)) border-box;
+  transform: translateY(-2px);
+  color: var(--text);
+}
+
+.format-card:hover::before,
+.format-card:focus-visible::before {
+  opacity: 1;
+  filter: blur(var(--card-glow-blur));
+}
+
+/* Активное (выбранное) состояние — фиксируем hover-эффект. */
+.format-card.is-active {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    var(--card-gradient, var(--border)) border-box;
+  color: var(--text);
+}
+
+.format-card.is-active::before {
+  opacity: 1;
+  filter: blur(var(--card-glow-blur));
+}
+
+/* lowPerformance: свечение отключаем, обводку оставляем (без blur halo),
+   подъём карточки отключаем. */
+[data-perf="low"] .format-card::before {
+  display: none;
+}
+[data-perf="low"] .format-card:hover,
+[data-perf="low"] .format-card:focus-visible {
+  transform: none;
+}
+
+/* ============================================================
+   7. App Bar (.app-bar) — стиль Supabase / Resend / Vercel
+   ------------------------------------------------------------
+   См. ТЗ 5.1.1: логотип слева, навигация по центру (5 пунктов-
+   иконок с hover-раскрытием подписи и выпадающим меню),
+   переключатели справа.
+   ============================================================ */
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Логотип (слева). */
+.app-bar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* Центральная навигация. */
+.app-bar__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Навигационная «пилюля»: в покое — только иконка; при hover —
+   растягивается под иконку+текст, снизу выпадает меню. */
+.nav-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0; /* текст скрыт в покое, gap не нужен */
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background var(--transition-fast) var(--ease-out),
+    color var(--transition-fast) var(--ease-out),
+    border-color var(--transition-fast) var(--ease-out);
+}
+
+.nav-pill__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Текстовая подпись: в покое схлопнута (max-width 0, opacity 0),
+   при hover плавно выезжает справа от иконки. */
+.nav-pill__label {
+  max-width: 0;
+  margin-left: 0;
+  opacity: 0;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  transition: max-width var(--transition-base) var(--ease-out),
+    margin-left var(--transition-base) var(--ease-out),
+    opacity var(--transition-fast) var(--ease-out);
+}
+
+.nav-pill:hover,
+.nav-pill:focus-visible,
+.nav-pill.is-open {
+  background: var(--secondary-black);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.nav-pill:hover .nav-pill__label,
+.nav-pill:focus-visible .nav-pill__label,
+.nav-pill.is-open .nav-pill__label {
+  max-width: 140px; /* достаточно для подписи вроде «Инструменты» */
+  margin-left: 6px;
+  opacity: 1;
+}
+
+/* Активный пункт (текущая страница) — с градиентом/акцентом категории. */
+.nav-pill.is-active {
+  color: var(--text);
+  background: var(--secondary-black);
+  border-color: var(--border-white);
+}
+
+/* Выпадающее меню под пилюлей. */
+.nav-pill__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  /* Ширина = ширине раскрытой пилюли (по ТЗ). */
+  min-width: 100%;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: var(--radius-button);
+  background: var(--secondary-black);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  /* Скрыто в покое. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--transition-fast) var(--ease-out),
+    transform var(--transition-fast) var(--ease-out),
+    visibility var(--transition-fast);
+  z-index: 60;
+}
+
+.nav-pill:hover .nav-pill__menu,
+.nav-pill:focus-within .nav-pill__menu,
+.nav-pill.is-open .nav-pill__menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-pill__menu-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast) var(--ease-out),
+    color var(--transition-fast) var(--ease-out);
+}
+
+.nav-pill__menu-item:hover {
+  background: var(--border-black);
+  color: var(--text);
+}
+
+/* Переключатели справа. */
+.app-bar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Адаптивность: на мобильных гамбургер раскрывает вертикальное меню. */
+@media (max-width: 767px) {
+  .app-bar__nav {
+    /* Скрыто по умолчанию; показывается через класс-модификатор при
+       открытии гамбургера. Реализация меню за компонентом Navbar. */
+    display: none;
+  }
+  .nav-pill__label {
+    /* В мобильном развёрнутом меню подпись видна всегда. */
+    max-width: 140px;
+    margin-left: 6px;
+    opacity: 1;
+  }
 }
